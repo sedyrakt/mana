@@ -208,17 +208,14 @@ const steps = [
 function detectDevice(): Device {
   const ua = navigator.userAgent || "";
 
-  // iPhone
   if (/iPhone/i.test(ua)) {
     return "iphone";
   }
 
-  // iPad classique
   if (/iPad/i.test(ua)) {
     return "ipad";
   }
 
-  // iPadOS récent : certains iPad utilisent un UA Mac
   if (
     /Macintosh/i.test(ua) &&
     navigator.maxTouchPoints > 1
@@ -226,7 +223,6 @@ function detectDevice(): Device {
     return "ipad";
   }
 
-  // Android : téléphone ou tablette
   if (/Android/i.test(ua)) {
     if (/Mobile/i.test(ua)) {
       return "android-phone";
@@ -235,7 +231,6 @@ function detectDevice(): Device {
     return "android-tablet";
   }
 
-  // Ordinateur Windows, macOS ou Linux
   if (
     /Windows NT|Macintosh|Mac OS X|Linux x86_64|X11|Linux i686/i.test(
       ua
@@ -279,33 +274,26 @@ function detectPlatform(): Platform {
 function detectBrowser(): Browser {
   const ua = navigator.userAgent || "";
 
-  // Samsung Internet
   if (/SamsungBrowser/i.test(ua)) {
     return "samsung";
   }
 
-  // Microsoft Edge
   if (/EdgiOS|EdgA|Edg\//i.test(ua)) {
     return "edge";
   }
 
-  // Opera
   if (/OPiOS|OPR\/|Opera/i.test(ua)) {
     return "opera";
   }
 
-  // Firefox
   if (/FxiOS|Firefox/i.test(ua)) {
     return "firefox";
   }
 
-  // Google Chrome / Chromium
-  // CriOS = Chrome sur iPhone et iPad
   if (/CriOS|Chrome|Chromium/i.test(ua)) {
     return "chrome";
   }
 
-  // Safari
   if (
     /Safari/i.test(ua) &&
     /AppleWebKit/i.test(ua)
@@ -393,6 +381,20 @@ function isPWAInstalled(): boolean {
 // ==========================================
 
 function App() {
+  // ========================================
+  // SPLASH SCREEN LOADER
+  // ========================================
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 1600);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [device] = useState<Device>(() =>
@@ -569,7 +571,6 @@ function App() {
   // ========================================
 
   const handleInstallPWA = async () => {
-    // Déjà installé
     if (isPWAInstalled() || isInstalled) {
       setIsInstalled(true);
       setInstallState("installed");
@@ -581,15 +582,12 @@ function App() {
       return;
     }
 
-    // iPhone / iPad
-    // Afficher les instructions adaptées au navigateur.
     if (platform === "ios") {
       setShowInstallHelp(true);
       setInstallMessage("");
       return;
     }
 
-    // Android / Desktop : installation automatique
     if (installPrompt) {
       try {
         setInstallState("installing");
@@ -631,7 +629,6 @@ function App() {
       return;
     }
 
-    // Navigateur sans prompt automatique
     setShowInstallHelp(true);
     setInstallMessage("");
   };
@@ -754,6 +751,42 @@ function App() {
         theme === "dark" ? "dark-mode" : "light-mode"
       }`}
     >
+      {/* SPLASH SCREEN */}
+
+      {isLoading && (
+        <div
+          className="mana-splash-screen"
+          role="status"
+          aria-live="polite"
+          aria-label="Préparation de MANA"
+        >
+          <div className="mana-splash-content">
+            <div className="mana-splash-logo-wrapper">
+              <img
+                src={`${BASE_URL}logo.png`}
+                alt="MANA"
+                className="mana-splash-logo"
+              />
+            </div>
+
+            <h1 className="mana-splash-title">
+              MANA
+            </h1>
+
+            <p className="mana-splash-description">
+              Préparation de votre expérience nutritionnelle…
+            </p>
+
+            <div
+              className="mana-splash-loader"
+              aria-hidden="true"
+            >
+              <span />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* NAVIGATION */}
 
       <nav
@@ -895,15 +928,6 @@ function App() {
                 {!isInstalled && (
                   <ExternalLink size={16} />
                 )}
-              </button>
-
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => scrollTo("nutrition")}
-              >
-                Explorer la nutrition
-                <ChevronRight size={18} />
               </button>
             </div>
 
@@ -1559,9 +1583,7 @@ function App() {
               {getInstallTitle(device)}
             </h2>
 
-            {/* ======================================
-                1. IPHONE / IPAD - TOUS LES NAVIGATEURS
-            ====================================== */}
+            {/* IPHONE / IPAD */}
 
             {platform === "ios" && (
               <div className="pwa-help-steps">
@@ -1630,9 +1652,7 @@ function App() {
               </div>
             )}
 
-            {/* ======================================
-                2. ANDROID
-            ====================================== */}
+            {/* ANDROID */}
 
             {platform === "android" && (
               <div className="pwa-help-steps">
@@ -1710,9 +1730,7 @@ function App() {
               </div>
             )}
 
-            {/* ======================================
-                3. DESKTOP
-            ====================================== */}
+            {/* DESKTOP */}
 
             {platform === "desktop" && (
               <div className="pwa-help-steps">
@@ -1778,9 +1796,7 @@ function App() {
               </div>
             )}
 
-            {/* ======================================
-                4. AUTRE APPAREIL
-            ====================================== */}
+            {/* AUTRE APPAREIL */}
 
             {platform === "other" && (
               <div className="pwa-help-steps">
